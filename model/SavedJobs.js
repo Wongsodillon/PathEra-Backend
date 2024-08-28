@@ -28,7 +28,7 @@ const SavedJobs = db.define(
   }
 );
 
-SavedJobs.belongsTo(Jobs, { foreignKey: "job_id", as: "jobID" });
-SavedJobs.belongsTo(Users, { foreignKey: "user_id", as: "userId" });
+SavedJobs.belongsTo(Jobs, { foreignKey: "job_id", as: "job" });
+SavedJobs.belongsTo(Users, { foreignKey: "user_id", as: "user" });
 
 export default SavedJobs;
