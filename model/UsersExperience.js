@@ -7,8 +7,17 @@ const { DataTypes } = Sequelize;
 const UsersExperience = db.define(
   "users_experience",
   {
+    user_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Users,
+        key: "id",
+      },
+      allowNull: false, // Ensure that each experience is linked to a user
+    },
     experience: {
       type: DataTypes.STRING,
+      allowNull: false, // Ensure that experience is provided
     },
   },
   {
@@ -16,10 +25,15 @@ const UsersExperience = db.define(
   }
 );
 
-// This establishes UsersExperience as having many Users
-UsersExperience.hasMany(Users, {
-  foreignKey: "experience_id", // Ensure this key exists on Users
-  as: "Users", // This alias is how you will refer to the Users from a UsersExperience instance
+// Define the relationships correctly
+Users.hasMany(UsersExperience, {
+  foreignKey: "user_id",
+  as: "Experiences",
+});
+
+UsersExperience.belongsTo(Users, {
+  foreignKey: "user_id",
+  as: "User",
 });
 
 export default UsersExperience;

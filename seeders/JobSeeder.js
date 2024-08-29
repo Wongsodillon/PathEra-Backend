@@ -5,7 +5,7 @@ import Jobs from "../model/Jobs.js";
 
 const results = [];
 
-fs.createReadStream("../dataset/job_for_migration2.csv")
+fs.createReadStream("../dataset/job_for_migration.csv")
   .pipe(csv())
   .on("data", (data) => {
     if (results.length < 250) {
@@ -15,6 +15,7 @@ fs.createReadStream("../dataset/job_for_migration2.csv")
         job_type: data.job_type,
         job_level: data.job_level,
         job_model: data.work_model,
+        location: data.location,
         job_industry: null,
         min_experience: parseInt(data.min_experience) || 0,
         degree: data.degree || "Not Specified",
