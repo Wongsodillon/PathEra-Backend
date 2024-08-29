@@ -5,21 +5,56 @@ import Companies from "../model/Companies.js";
 
 export const recommendJobs = async (req, res) => {
   try {
+    // Step 1: Receive user data from the frontend
     const userData = req.body;
 
-    const response = await axios.post(
+    // Step 2: Send the user data to the AI service
+    const aiResponse = await axios.post(
       "http://localhost:5020/recommend",
       userData
     );
 
-    if (response.data.success) {
-      const { result, skill_matches } = response.data;
+    // Step 3: Handle AI service response
+    if (aiResponse.data.success) {
+      const jobRecommendations = aiResponse.data.result;
 
-      await MatchedSkills.create(skill_matches);
+      // Collect job_ids from the AI response
+      const jobIds = jobRecommendations.map((job) => job.job_id);
 
-      res.json({ success: true, result });
+      // Step 4: Fetch job details from the database
+      const jobs = await Jobs.findAll({
+        where: { id: jobIds }, // Using 'id' as the primary key for Jobs
+        include: {
+          model: Companies,
+          as: "companyId",
+          attributes: ["company_name"],
+        },
+      });
+
+      // Step 5: Map the results to include job_title and company_name
+      const jobDetails = jobs.reduce((acc, job) => {
+        acc[job.id] = {
+          jobTitle: job.job_title,
+          companyName: job.companyId.company_name,
+        };
+        return acc;
+      }, {});
+
+      const enrichedRecommendations = jobRecommendations.map((job) => ({
+        companyName: jobDetails[job.job_id]?.companyName || "Unknown",
+        jobTitle: jobDetails[job.job_id]?.jobTitle || "Unknown",
+        similarity: job.similarity || 0,
+      }));
+
+      // Step 6: Return the recommendations to the frontend
+      res
+        .status(200)
+        .json({ success: true, jobRecommendations: enrichedRecommendations });
     } else {
-      res.status(500).json({ success: false, error: "Recommendation failed" });
+      res.status(500).json({
+        success: false,
+        error: "AI service failed to provide recommendations",
+      });
     }
   } catch (error) {
     console.error("Error occurred:", error);
