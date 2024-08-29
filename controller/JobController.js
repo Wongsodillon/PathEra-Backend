@@ -34,13 +34,23 @@ export const showAllJobs = async (req, res) => {
         {
           model: Companies,
           as: "companyId",
-          attributes: ["id", "company_name"],
+          attributes: ["id", "company_name", "company_image"],
         },
       ],
+      attributes: {
+        exclude: [
+          "company_id",
+          "min_experience",
+          "degree",
+          "job_link",
+          "date_posted",
+          "updatedAt",
+        ],
+      },
     });
 
-    res.status(200).json(jobs);
+    return res.status(200).json(jobs);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
