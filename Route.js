@@ -11,6 +11,7 @@ import {
 } from "./controller/SavedJobsController.js";
 import { showSkills } from "./controller/SkillsController.js";
 import authenticateToken from "./middleware/AuthToken.js";
+import { getQuestions } from "./controller/QuestionsController.js";
 
 const router = express.Router();
 
@@ -23,8 +24,9 @@ router.post("/recommend", recommendJobs);
 router.get("/jobs", showAllJobs);
 router.post("/save-job", saveJob);
 router.get("/skills", showSkills);
-router.get("/saved-jobs", authenticateToken, showSavedJobs); // This is for showing saved jobs
-router.get("/wishlisted-jobs/:userId", authenticateToken, showWishlistedJobs); // Fixed endpoint
-router.delete("/remove-job", authenticateToken, removeSavedJob); // Fixed endpoint
+router.get("/questions/:jobTitle", getQuestions);
+router.get("/saved-jobs", authenticateToken, showSavedJobs);
+router.get("/wishlisted-jobs/:userId", authenticateToken, showWishlistedJobs);
+router.delete("/remove-job", authenticateToken, removeSavedJob);
 
 export default router;

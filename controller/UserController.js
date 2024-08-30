@@ -180,9 +180,9 @@ class UserController {
 
       await Users.update({ token: null }, { where: { id: user.id } });
 
-      res.status(200).json({ message: "Logged out successfully" });
+      return res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 }

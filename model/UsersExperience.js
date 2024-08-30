@@ -25,7 +25,6 @@ const UsersExperience = db.define(
   }
 );
 
-// Define the relationships correctly
 Users.hasMany(UsersExperience, {
   foreignKey: "user_id",
   as: "Experiences",

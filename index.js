@@ -15,6 +15,10 @@ import UsersExperience from "./model/UsersExperience.js";
 import UserSkills from "./model/UserSkills.js";
 import UserTitles from "./model/UserTitles.js";
 import SavedJobs from "./model/SavedJobs.js";
+import Questions from "./model/Questions.js";
+import AnswerKey from "./model/AnswerKey.js";
+import PracticeSession from "./model/PracticeSession.js";
+import AnswerDetails from "./model/AnswerDetails.js";
 
 dotenv.config();
 const app = express();
@@ -31,6 +35,10 @@ const app = express();
 // await UserSkills.sync();
 // await UserTitles.sync();
 // await SavedJobs.sync();
+// await Questions.sync();
+// await AnswerKey.sync();
+// await PracticeSession.sync();
+// await AnswerDetails.sync();
 
 app.use(express.json());
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
