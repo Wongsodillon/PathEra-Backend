@@ -12,6 +12,8 @@ import {
 import { showSkills } from "./controller/SkillsController.js";
 import authenticateToken from "./middleware/AuthToken.js";
 import { getQuestions } from "./controller/QuestionsController.js";
+import process from "process";
+import { Buffer } from "buffer";
 
 const router = express.Router();
 
@@ -28,5 +30,50 @@ router.get("/questions/:jobTitle", getQuestions);
 router.get("/saved-jobs", authenticateToken, showSavedJobs);
 router.get("/wishlisted-jobs/:userId", authenticateToken, showWishlistedJobs);
 router.delete("/remove-job", authenticateToken, removeSavedJob);
+router.post("/transcribe", async (req, res) => {
+  try {
+    const { audioData } = req.body;
+
+    if (!audioData) {
+      console.error("No audio data received");
+      return res.status(400).json({ error: "No audio data provided" });
+    }
+
+    const base64Data = audioData.includes(",")
+      ? audioData.split(",")[1]
+      : audioData;
+
+    if (!base64Data || base64Data.trim() === "") {
+      console.error("Base64 data extraction failed");
+      return res.status(400).json({ error: "Invalid base64 data" });
+    }
+
+    const buffer = Buffer.from(base64Data, "base64");
+
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/openai/whisper-small",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({
+          inputs: buffer.toString("base64"),
+          options: {
+            task: "transcribe",
+            language: "en",
+          },
+        }),
+      }
+    );
+
+    const result = await response.json();
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Error during transcription:", error);
+    return res.status(500).json({ error: "Transcription failed" });
+  }
+});
 
 export default router;

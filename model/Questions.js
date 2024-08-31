@@ -19,6 +19,10 @@ const Questions = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    topic: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,

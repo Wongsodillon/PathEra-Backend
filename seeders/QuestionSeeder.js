@@ -11,6 +11,7 @@ fs.createReadStream("../dataset/questions.csv")
     questions.push({
       question: data.Question,
       job_title: data.JobTitle,
+      topic: data.Topic,
     });
   })
   .on("end", async () => {
