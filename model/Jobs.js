@@ -26,6 +26,10 @@ const Jobs = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    location: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     job_industry: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -46,6 +50,10 @@ const Jobs = db.define(
     },
     date_posted: {
       type: DataTypes.DATE,
+      allowNull: true,
+    },
+    location: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
     company_id: {

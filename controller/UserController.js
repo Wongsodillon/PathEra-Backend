@@ -41,9 +41,9 @@ class UserController {
         password: hashedPassword,
       });
 
-      res.status(201).json(user);
+      return res.status(201).json(user);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -108,60 +108,6 @@ class UserController {
     }
   }
 
-  static async updateProfile(req, res) {
-    try {
-      const { name, email, password, degree, years_of_experience } = req.body;
-      const userId = req.userId;
-
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required." });
-      }
-
-      const updateData = {};
-
-      if (name) updateData.name = name;
-      if (email) updateData.email = email;
-      if (password) {
-        if (password.length < 8) {
-          return res
-            .status(400)
-            .json({ message: "Password must be at least 8 characters." });
-        }
-        updateData.password = await bcrypt.hash(password, 8);
-      }
-      if (degree) updateData.degree = degree;
-      if (years_of_experience)
-        updateData.years_of_experience = years_of_experience;
-
-      if (Object.keys(updateData).length === 0) {
-        return res
-          .status(400)
-          .json({ message: "No valid data provided to update." });
-      }
-
-      const affectedRows = await Users.update(updateData, {
-        where: { id: userId },
-      });
-
-      if (affectedRows[0] === 0) {
-        return res
-          .status(404)
-          .json({ message: "User not found or no changes made." });
-      }
-
-      const updatedUser = await Users.findByPk(userId);
-
-      res
-        .status(200)
-        .json({ message: "Profile updated successfully", user: updatedUser });
-    } catch (error) {
-      console.error("Error updating profile:", error.message);
-      res
-        .status(500)
-        .json({ message: "Internal Server Error", error: error.message });
-    }
-  }
-
   static async logout(req, res) {
     try {
       const authHeader = req.headers.authorization;
@@ -180,9 +126,9 @@ class UserController {
 
       await Users.update({ token: null }, { where: { id: user.id } });
 
-      res.status(200).json({ message: "Logged out successfully" });
+      return res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 }
