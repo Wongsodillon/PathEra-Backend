@@ -33,9 +33,6 @@ function Dashboard() {
       {user ? (
         <>
           <h1>Welcome, {user.name}!</h1>
-          <button onClick={() => navigate("/update-profile")}>
-            Update Profile
-          </button>
           <button onClick={() => navigate("/saved-jobs")}>
             View Saved Jobs
           </button>

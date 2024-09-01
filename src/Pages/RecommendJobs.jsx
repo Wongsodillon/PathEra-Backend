@@ -1,13 +1,15 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const RecommendJobs = () => {
   const [userData, setUserData] = useState({
-    user_id: 1,
+    user_id: null, // Initially null to ensure we detect when it's properly set
     job_title: "",
     skills: "",
-    degree: "Bachelor's Degree",
-    years_of_experience: 1,
+    degree: "Bachelors",
+    years_of_experience: 2,
   });
 
   const [jobTitles, setJobTitles] = useState([]);
@@ -16,6 +18,31 @@ const RecommendJobs = () => {
   const [skillInput, setSkillInput] = useState("");
   const [jobResults, setJobResults] = useState([]);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate(); // Initialize useNavigate
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    axios
+      .get("http://localhost:5005/auth", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setUserData((prevData) => ({
+          ...prevData,
+          user_id: response.data.user_id, // Assuming response.data contains user_id
+        }));
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+        navigate("/login");
+      });
+  }, [navigate]);
 
   const addJobTitle = () => {
     if (jobTitleInput.trim()) {
@@ -31,12 +58,28 @@ const RecommendJobs = () => {
     }
   };
 
+  const handleDegreeChange = (e) => {
+    setUserData({
+      ...userData,
+      degree: e.target.value,
+    });
+  };
+
   const fetchRecommendations = async () => {
+    if (!userData.user_id) {
+      console.error("User ID is not set.");
+      setError("User ID is not set. Please log in.");
+      return;
+    }
+
     const updatedUserData = {
       ...userData,
       job_title: jobTitles.join(","),
       skills: skills.join(","),
     };
+
+    // Debug: Log userData before sending
+    console.log("Sending userData:", updatedUserData);
 
     try {
       const response = await axios.post(
@@ -89,6 +132,17 @@ const RecommendJobs = () => {
             <li key={index}>{skill}</li>
           ))}
         </ul>
+      </div>
+
+      <div>
+        <h3>Degree</h3>
+        <select value={userData.degree} onChange={handleDegreeChange}>
+          <option value="No degree">No degree</option>
+          <option value="MBA">MBA</option>
+          <option value="PhD">PhD</option>
+          <option value="Masters">Masters</option>
+          <option value="Bachelors">Bachelors</option>
+        </select>
       </div>
 
       <button onClick={fetchRecommendations}>Get Recommendations</button>
