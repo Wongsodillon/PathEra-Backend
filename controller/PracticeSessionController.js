@@ -1,14 +1,115 @@
-import PracticeSession from "../models/PracticeSession.js";
-import AnswerDetails from "../models/AnswerDetails.js";
-import { Sequelize } from "sequelize";
+import jwt from "jsonwebtoken";
+import PracticeSession from "../model/PracticeSession.js";
+import AnswerDetails from "../model/AnswerDetails.js";
+import Questions from "../model/Questions.js";
 
-const saveSession = async (req, res) => {
-    try {
-        const { userId, jobTitle } = req.body;
-        const newSession = await PracticeSession.create({ user_id: userId, job_title: jobTitle });
+export const saveSession = async (req, res) => {
+  try {
+    const {
+      userId,
+      jobTitle,
+      answers,
+      scores,
+      feedback,
+      questions,
+      sample_answers,
+    } = req.body;
 
-    } catch (error) {
-        console.error("Error saving practice session:", error);
-        return res.status(500).json({ error: error.message });
+    const validQuestionIds = await Questions.findAll({
+      where: {
+        id: questions.map((q) => q.id),
+      },
+      attributes: ["id"],
+    });
+
+    if (validQuestionIds.length !== questions.length) {
+      return res.status(400).json({
+        error: "One or more question IDs do not exist in the database.",
+      });
     }
-}
+
+    const newSession = await PracticeSession.create({
+      user_id: userId,
+      job_title: jobTitle,
+    });
+
+    const sessionId = newSession.dataValues.id;
+
+    const answerDetails = answers.map((answer, index) => {
+      return {
+        practice_session_id: sessionId,
+        question_id: questions[index].id,
+        answer,
+        score: scores[index],
+        feedback: feedback[index],
+        sample_answer: sample_answers[index],
+      };
+    });
+
+    await AnswerDetails.bulkCreate(answerDetails);
+
+    return res
+      .status(200)
+      .json({ message: "Session saved successfully", id: sessionId });
+  } catch (error) {
+    console.error("Error saving practice session:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getSession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: "Authorization header missing" });
+    }
+    console.log("Authorization Header:", authHeader);
+    const token = authHeader.split(" ")[1];
+
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const authenticatedUserId = decodedToken.id;
+
+    const session = await PracticeSession.findOne({
+      where: { id: sessionId },
+      include: {
+        model: AnswerDetails,
+        as: "answerDetails",
+        include: {
+          model: Questions,
+          as: "question",
+          attributes: ["question"],
+        },
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    if (session.user_id !== authenticatedUserId) {
+      return res.status(403).json({
+        error:
+          "Access forbidden: You do not have permission to access this session.",
+      });
+    }
+
+    const sessionDetails = {
+      userId: session.user_id,
+      jobTitle: session.job_title,
+      answers: session.answerDetails.map((answer) => ({
+        question: answer.question.question,
+        answer: answer.answer,
+        score: answer.score,
+        feedback: answer.feedback,
+        sampleAnswer: answer.sample_answer,
+      })),
+    };
+
+    return res.status(200).json(sessionDetails);
+  } catch (error) {
+    console.error("Error fetching practice session:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};

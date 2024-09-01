@@ -1,7 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../Database.js";
 import PracticeSession from "./PracticeSession.js";
-import Questions from "./Questions.js";
 
 const { DataTypes } = Sequelize;
 
@@ -15,18 +14,10 @@ const AnswerDetails = db.define(
     },
     practice_session_id: {
       type: DataTypes.INTEGER,
-      references: {
-        model: "practice_sessions",
-        key: "id",
-      },
       allowNull: false,
     },
     question_id: {
       type: DataTypes.INTEGER,
-      references: {
-        model: "questions",
-        key: "id",
-      },
       allowNull: false,
     },
     answer: {
@@ -50,5 +41,24 @@ const AnswerDetails = db.define(
     freezeTableName: true,
   }
 );
+
+(async () => {
+  const PracticeSession = await import("./PracticeSession.js");
+  const Question = await import("./Questions.js");
+  AnswerDetails.belongsTo(PracticeSession.default, {
+    foreignKey: "practice_session_id",
+    as: "practiceSession",
+  });
+
+  PracticeSession.default.hasMany(AnswerDetails, {
+    foreignKey: "practice_session_id",
+    as: "answerDetails",
+  });
+
+  AnswerDetails.belongsTo(Question.default, {
+    foreignKey: "question_id",
+    as: "question",
+  });
+})();
 
 export default AnswerDetails;

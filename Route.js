@@ -14,6 +14,7 @@ import authenticateToken from "./middleware/AuthToken.js";
 import { getQuestions } from "./controller/QuestionsController.js";
 import process from "process";
 import { Buffer } from "buffer";
+import { saveSession, getSession } from "./controller/PracticeSessionController.js";
 
 const router = express.Router();
 
@@ -30,6 +31,8 @@ router.get("/questions/:jobTitle", getQuestions);
 router.get("/saved-jobs", authenticateToken, showSavedJobs);
 router.get("/wishlisted-jobs/:userId", authenticateToken, showWishlistedJobs);
 router.delete("/remove-job", authenticateToken, removeSavedJob);
+router.post("/save-session", saveSession);
+router.get("/get-session/:sessionId", getSession);
 router.post("/transcribe", async (req, res) => {
   try {
     const { audioData } = req.body;
