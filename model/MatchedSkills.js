@@ -17,7 +17,7 @@ const MatchedSkills = db.define(
       },
     },
     matches: {
-      type: DataTypes.JSON,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
   },
