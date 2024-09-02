@@ -24,8 +24,9 @@ const app = express();
 
 // await db.authenticate();
 // await Users.sync();
+// await Jobs.sync();
 // await JobMatches.sync();
-/// await JobSkills.sync();
+// await JobSkills.sync();
 // await MatchedSkills.sync();
 // await Skills.sync();
 // await UsersExperience.sync();

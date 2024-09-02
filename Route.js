@@ -1,7 +1,11 @@
 import express from "express";
 import UserController from "./controller/UserController.js";
 import checkToken from "./middleware/CheckToken.js";
-import { recommendJobs, showAllJobs } from "./controller/JobController.js";
+import {
+  recommendJobs,
+  showAllJobs,
+  showJobDetail,
+} from "./controller/JobController.js";
 import {
   saveJob,
   showSavedJobs,
@@ -22,6 +26,7 @@ router.post("/login", UserController.login);
 router.post("/logout", checkToken, UserController.logout);
 router.post("/recommend", recommendJobs);
 router.get("/jobs", showAllJobs);
+router.get("/jobs/:id", showJobDetail);
 router.post("/save-job", saveJob);
 router.get("/skills", showSkills);
 router.get("/questions/:jobTitle", getQuestions);
