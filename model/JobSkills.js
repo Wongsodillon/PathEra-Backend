@@ -30,7 +30,15 @@ const JobSkills = db.define(
   }
 );
 
-JobSkills.belongsTo(Jobs, { foreignKey: "job_id", as: "jobID" });
-Skills.hasMany(JobSkills, { foreignKey: "skill_id", as: "skillID" });
+(async () => {
+  const Jobs = (await import("./Jobs.js")).default;
+  const Skills = (await import("./Skills.js")).default;
+
+  Jobs.hasMany(JobSkills, { foreignKey: "job_id", as: "jobSkills" });
+  JobSkills.belongsTo(Jobs, { foreignKey: "job_id", as: "jobID" });
+
+  Skills.hasMany(JobSkills, { foreignKey: "skill_id", as: "jobSkills" });
+  JobSkills.belongsTo(Skills, { foreignKey: "skill_id", as: "skill" });
+})();
 
 export default JobSkills;

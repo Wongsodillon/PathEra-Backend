@@ -127,16 +127,16 @@ export const showJobDetail = async (req, res) => {
 
     const jobDetails = {
       jobTitle: job.job_title,
-      companyName: job.company.company_name,
+      companyName: job.companyId.company_name,
       location: job.location,
       industry: job.job_industry,
       degree: job.degree,
       minExperience: job.min_experience,
       datePosted: job.date_posted,
-      jobDescription: job.job_description,
       skillsRequired: job.jobSkills.map(
-        (jobSkill) => jobSkill.skill.skill_name
+        (jobSkill) => jobSkill.skill?.skill_name || "Unknown"
       ),
+      jobDescription: job.job_description,
     };
 
     res.status(200).json(jobDetails);

@@ -1,4 +1,5 @@
 import { Sequelize } from "sequelize";
+import JobSkills from "./JobSkills.js";
 import db from "../Database.js";
 
 const { DataTypes } = Sequelize;
