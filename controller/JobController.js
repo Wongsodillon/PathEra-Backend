@@ -1,8 +1,6 @@
 import axios from "axios";
 import Jobs from "../model/Jobs.js";
 import Companies from "../model/Companies.js";
-import JobSkills from "../model/JobSkills.js";
-import Skills from "../model/Skills.js";
 
 export const recommendJobs = async (req, res) => {
   try {
@@ -83,67 +81,5 @@ export const showAllJobs = async (req, res) => {
   } catch (error) {
     console.error("Error fetching jobs:", error.message);
     return res.status(500).json({ error: error.message });
-  }
-};
-
-export const showJobDetail = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const job = await Jobs.findOne({
-      where: { id },
-      attributes: [
-        "job_title",
-        "location",
-        "job_industry",
-        "degree",
-        "min_experience",
-        "date_posted",
-        "job_description",
-      ],
-      include: [
-        {
-          model: Companies,
-          as: "companyId",
-          attributes: ["company_name"],
-        },
-        {
-          model: JobSkills,
-          as: "jobSkills",
-          include: [
-            {
-              model: Skills,
-              as: "skill",
-              attributes: ["skill_name"],
-            },
-          ],
-        },
-      ],
-    });
-
-    if (!job) {
-      return res.status(404).json({ message: "Job not found" });
-    }
-
-    const jobDetails = {
-      jobTitle: job.job_title,
-      companyName: job.company.company_name,
-      location: job.location,
-      industry: job.job_industry,
-      degree: job.degree,
-      minExperience: job.min_experience,
-      datePosted: job.date_posted,
-      jobDescription: job.job_description,
-      skillsRequired: job.jobSkills.map(
-        (jobSkill) => jobSkill.skill.skill_name
-      ),
-    };
-
-    res.status(200).json(jobDetails);
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while retrieving job details" });
   }
 };
