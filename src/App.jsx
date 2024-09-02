@@ -6,6 +6,7 @@ import Home from "./Pages/Home";
 import Dashboard from "./Pages/Dashboard";
 import SavedJobs from "./Pages/SavedJobs";
 import RecommendJobs from "./Pages/RecommendJobs";
+import JobDetail from "./Pages/JobDetail";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/saved-jobs" element={<SavedJobs />} />
         <Route path="/recommend-jobs" element={<RecommendJobs />} />
+        <Route path="/jobs/:id" element={<JobDetail />} />
       </Routes>
     </Router>
   );

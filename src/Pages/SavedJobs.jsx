@@ -16,7 +16,6 @@ const SavedJobs = () => {
           return;
         }
 
-        // Decode JWT Token
         const decodedToken = JSON.parse(atob(token.split(".")[1]));
         console.log("Decoded Token:", decodedToken); // Log the entire decoded token
 

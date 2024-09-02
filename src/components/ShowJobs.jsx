@@ -3,6 +3,7 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart as faSolidHeart } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faRegularHeart } from "@fortawesome/free-regular-svg-icons";
+import { Link } from "react-router-dom";
 
 const ShowJobs = ({ userId }) => {
   const [jobs, setJobs] = useState([]);
@@ -118,7 +119,10 @@ const ShowJobs = ({ userId }) => {
           {jobs.map((job) => (
             <tr key={job.id}>
               <td>{job.companyId.company_name}</td>
-              <td>{job.job_title}</td>
+              <td>
+                <Link to={`/jobs/${job.id}`}>{job.job_title}</Link>{" "}
+                {/* Link to Job Detail */}
+              </td>
               <td>
                 <FontAwesomeIcon
                   icon={savedJobs.has(job.id) ? faSolidHeart : faRegularHeart}
