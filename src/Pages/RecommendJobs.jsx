@@ -1,11 +1,11 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { jwtDecode } from "jwt-decode"; // Fix: Use default import for jwtDecode
+import { useNavigate, Link } from "react-router-dom"; // Import Link
 
 const RecommendJobs = () => {
   const [userData, setUserData] = useState({
-    user_id: null, // Initially null to ensure we detect when it's properly set
+    user_id: null,
     job_title: "",
     skills: "",
     degree: "Bachelors",
@@ -19,7 +19,7 @@ const RecommendJobs = () => {
   const [jobResults, setJobResults] = useState([]);
   const [error, setError] = useState(null);
 
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -28,20 +28,16 @@ const RecommendJobs = () => {
       return;
     }
 
-    axios
-      .get("http://localhost:5005/auth", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setUserData((prevData) => ({
-          ...prevData,
-          user_id: response.data.user_id, // Assuming response.data contains user_id
-        }));
-      })
-      .catch((error) => {
-        console.error("Error fetching user data:", error);
-        navigate("/login");
-      });
+    try {
+      const decodedToken = jwtDecode(token);
+      setUserData((prevData) => ({
+        ...prevData,
+        user_id: decodedToken.id, // Assuming token contains 'id' as user ID
+      }));
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      navigate("/login");
+    }
   }, [navigate]);
 
   const addJobTitle = () => {
@@ -77,9 +73,6 @@ const RecommendJobs = () => {
       job_title: jobTitles.join(","),
       skills: skills.join(","),
     };
-
-    // Debug: Log userData before sending
-    console.log("Sending userData:", updatedUserData);
 
     try {
       const response = await axios.post(
@@ -155,15 +148,17 @@ const RecommendJobs = () => {
           <ul>
             {jobResults.map((job, index) => (
               <li key={index}>
-                <p>
-                  <strong>Company Name:</strong> {job.companyName}
-                </p>
-                <p>
-                  <strong>Job Title:</strong> {job.jobTitle}
-                </p>
-                <p>
-                  <strong>Overall Similarity:</strong> {job.similarity}%
-                </p>
+                <Link to={`/jobs/${job.job_id}`}>
+                  <p>
+                    <strong>Company Name:</strong> {job.companyName}
+                  </p>
+                  <p>
+                    <strong>Job Title:</strong> {job.jobTitle}
+                  </p>
+                  <p>
+                    <strong>Overall Similarity:</strong> {job.similarity}%
+                  </p>
+                </Link>
               </li>
             ))}
           </ul>

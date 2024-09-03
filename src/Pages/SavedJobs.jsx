@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeart as faSolidHeart } from "@fortawesome/free-solid-svg-icons";
+import { Link } from "react-router-dom";
 
-const SavedJobs = () => {
+const SavedJobs = ({ userId }) => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,12 +18,6 @@ const SavedJobs = () => {
           setLoading(false);
           return;
         }
-
-        const decodedToken = JSON.parse(atob(token.split(".")[1]));
-        console.log("Decoded Token:", decodedToken); // Log the entire decoded token
-
-        const userId = decodedToken.id; // Adjust based on the actual key used in your payload
-        console.log("User ID:", userId); // Log the extracted user ID
 
         const response = await axios.get("http://localhost:5005/saved-jobs", {
           headers: { Authorization: `Bearer ${token}` },
@@ -38,6 +35,31 @@ const SavedJobs = () => {
     fetchSavedJobs();
   }, []);
 
+  const handleRemoveJob = async (job_id) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("No token found. Please log in.");
+        return;
+      }
+
+      const decodedToken = JSON.parse(atob(token.split(".")[1]));
+      const userId = decodedToken.id; // Ensure this matches your backend token structure
+
+      await axios.delete("http://localhost:5005/remove-job", {
+        data: { job_id, user_id: userId }, // Ensure user_id is correctly passed
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setSavedJobs((prevJobs) =>
+        prevJobs.filter((job) => job.job.id !== job_id)
+      );
+    } catch (error) {
+      console.error("Error removing job:", error);
+      setError("Error removing job. Please try again later.");
+    }
+  };
+
   if (loading) return <p>Loading saved jobs...</p>;
   if (error) return <p>{error}</p>;
 
@@ -50,13 +72,26 @@ const SavedJobs = () => {
             <tr>
               <th>Company Name</th>
               <th>Job Title</th>
+              <th>Remove from Saved</th>
             </tr>
           </thead>
           <tbody>
             {savedJobs.map((job) => (
               <tr key={job.job.id}>
                 <td>{job.job.companyId.company_name}</td>
-                <td>{job.job.job_title}</td>
+                <td>
+                  <Link to={`/jobs/${job.job.id}`}>{job.job.job_title}</Link>
+                </td>
+                <td>
+                  <FontAwesomeIcon
+                    icon={faSolidHeart}
+                    onClick={() => handleRemoveJob(job.job.id)}
+                    style={{
+                      cursor: "pointer",
+                      color: "red",
+                    }}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

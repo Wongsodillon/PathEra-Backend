@@ -121,7 +121,6 @@ const ShowJobs = ({ userId }) => {
               <td>{job.companyId.company_name}</td>
               <td>
                 <Link to={`/jobs/${job.id}`}>{job.job_title}</Link>{" "}
-                {/* Link to Job Detail */}
               </td>
               <td>
                 <FontAwesomeIcon

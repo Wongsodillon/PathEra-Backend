@@ -24,6 +24,12 @@ const JobDetail = () => {
   if (error) return <p>{error}</p>;
   if (!job) return <p>Loading job details...</p>;
 
+  // Handle minimum experience display
+  const experienceDisplay =
+    job.minExperience === -1
+      ? "None"
+      : `${job.minExperience} year${job.minExperience !== 1 ? "s" : ""}`;
+
   return (
     <div>
       <h1>{job.jobTitle}</h1>
@@ -34,13 +40,10 @@ const JobDetail = () => {
         <strong>Location:</strong> {job.location}
       </p>
       <p>
-        <strong>Industry:</strong> {job.industry}
-      </p>
-      <p>
         <strong>Degree Required:</strong> {job.degree}
       </p>
       <p>
-        <strong>Minimum Experience:</strong> {job.minExperience} years
+        <strong>Minimum Experience:</strong> {experienceDisplay}
       </p>
       <p>
         <strong>Date Posted:</strong>{" "}
