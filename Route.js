@@ -1,7 +1,11 @@
 import express from "express";
 import UserController from "./controller/UserController.js";
 import checkToken from "./middleware/CheckToken.js";
-import { recommendJobs, showAllJobs } from "./controller/JobController.js";
+import {
+  recommendJobs,
+  showAllJobs,
+  showJobDetail,
+} from "./controller/JobController.js";
 import {
   saveJob,
   showSavedJobs,
@@ -36,6 +40,7 @@ router.delete("/remove-job", authenticateToken, removeSavedJob);
 router.post("/save-session", saveSession);
 router.get("/get-session/:sessionId", getSession);
 router.get("/history", getAllSession);
+router.get("/jobs/:id", showJobDetail);
 router.post("/transcribe", async (req, res) => {
   try {
     const { audioData } = req.body;

@@ -1,6 +1,8 @@
 import axios from "axios";
+import JobSkills from "../model/JobSkills.js";
 import Jobs from "../model/Jobs.js";
 import Companies from "../model/Companies.js";
+import Skills from "../model/Skills.js";
 
 export const recommendJobs = async (req, res) => {
   try {
