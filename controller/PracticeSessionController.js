@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import PracticeSession from "../model/PracticeSession.js";
 import AnswerDetails from "../model/AnswerDetails.js";
 import Questions from "../model/Questions.js";
+import { Sequelize } from "sequelize";
 
 export const saveSession = async (req, res) => {
   try {
@@ -53,6 +54,47 @@ export const saveSession = async (req, res) => {
       .json({ message: "Session saved successfully", id: sessionId });
   } catch (error) {
     console.error("Error saving practice session:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getAllSession = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: "Authorization header missing" });
+    }
+    const token = authHeader.split(" ")[1];
+
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const authenticatedUserId = decodedToken.id;
+
+    const sessions = await PracticeSession.findAll({
+      where: { user_id: authenticatedUserId },
+      attributes: {
+        include: [
+          [
+            Sequelize.fn("AVG", Sequelize.col("answerDetails.score")),
+            "average_score",
+          ],
+        ],
+      },
+      include: {
+        model: AnswerDetails,
+        as: "answerDetails",
+        attributes: [],
+        include: {
+          model: Questions,
+          as: "question",
+          attributes: ["question"],
+        },
+      },
+      order: [["createdAt", "DESC"]],
+      group: ["practice_sessions.id"],
+    });
+
+    return res.status(200).json(sessions);
+  } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
