@@ -9,6 +9,7 @@ export const recommendJobs = async (req, res) => {
     const userData = req.body;
     console.log("Received input from frontend:", userData);
 
+    // Fetch recommendations from AI service
     const aiResponse = await axios.post(
       "http://localhost:5020/recommend",
       userData
@@ -17,8 +18,10 @@ export const recommendJobs = async (req, res) => {
     if (aiResponse.data.success) {
       const jobRecommendations = aiResponse.data.result;
 
+      // Extract job IDs from recommendations
       const jobIds = jobRecommendations.map((job) => job.job_id);
 
+      // Fetch job details from database
       const jobs = await Jobs.findAll({
         where: { id: jobIds },
         include: {
@@ -28,6 +31,7 @@ export const recommendJobs = async (req, res) => {
         },
       });
 
+      // Map job details for quick lookup
       const jobDetails = jobs.reduce((acc, job) => {
         acc[job.id] = {
           jobTitle: job.job_title,
@@ -36,12 +40,15 @@ export const recommendJobs = async (req, res) => {
         return acc;
       }, {});
 
+      // Enrich recommendations with job details
       const enrichedRecommendations = jobRecommendations.map((job) => ({
+        job_id: job.job_id, // Ensure job_id is included here
         companyName: jobDetails[job.job_id]?.companyName || "Unknown",
         jobTitle: jobDetails[job.job_id]?.jobTitle || "Unknown",
         similarity: job.similarity || 0,
       }));
 
+      // Send the enriched recommendations to the frontend
       res
         .status(200)
         .json({ success: true, jobRecommendations: enrichedRecommendations });
