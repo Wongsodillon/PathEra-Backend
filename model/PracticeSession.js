@@ -1,7 +1,5 @@
 import { Sequelize } from "sequelize";
 import db from "../Database.js";
-import Users from "./Users.js";
-import AnswerDetails from "./AnswerDetails.js";
 
 const { DataTypes } = Sequelize;
 
@@ -15,10 +13,6 @@ const PracticeSession = db.define(
     },
     user_id: {
       type: DataTypes.INTEGER,
-      references: {
-        model: Users,
-        key: "id",
-      },
       allowNull: false,
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
