@@ -9,7 +9,6 @@ export const recommendJobs = async (req, res) => {
     const userData = req.body;
     console.log("Received input from frontend:", userData);
 
-    // Fetch recommendations from AI service
     const aiResponse = await axios.post(
       "http://localhost:5020/recommend",
       userData
@@ -18,10 +17,8 @@ export const recommendJobs = async (req, res) => {
     if (aiResponse.data.success) {
       const jobRecommendations = aiResponse.data.result;
 
-      // Extract job IDs from recommendations
       const jobIds = jobRecommendations.map((job) => job.job_id);
 
-      // Fetch job details from database
       const jobs = await Jobs.findAll({
         where: { id: jobIds },
         include: {
@@ -31,7 +28,6 @@ export const recommendJobs = async (req, res) => {
         },
       });
 
-      // Map job details for quick lookup
       const jobDetails = jobs.reduce((acc, job) => {
         acc[job.id] = {
           jobTitle: job.job_title,
@@ -40,15 +36,13 @@ export const recommendJobs = async (req, res) => {
         return acc;
       }, {});
 
-      // Enrich recommendations with job details
       const enrichedRecommendations = jobRecommendations.map((job) => ({
-        job_id: job.job_id, // Ensure job_id is included here
+        job_id: job.job_id,
         companyName: jobDetails[job.job_id]?.companyName || "Unknown",
         jobTitle: jobDetails[job.job_id]?.jobTitle || "Unknown",
         similarity: job.similarity || 0,
       }));
 
-      // Send the enriched recommendations to the frontend
       res
         .status(200)
         .json({ success: true, jobRecommendations: enrichedRecommendations });
@@ -99,20 +93,12 @@ export const showJobDetail = async (req, res) => {
 
     const job = await Jobs.findOne({
       where: { id },
-      attributes: [
-        "job_title",
-        "location",
-        "job_industry",
-        "degree",
-        "min_experience",
-        "date_posted",
-        "job_description",
-      ],
+
       include: [
         {
           model: Companies,
           as: "companyId",
-          attributes: ["company_name"],
+          attributes: ["company_name", "company_image"],
         },
         {
           model: JobSkills,
@@ -134,12 +120,16 @@ export const showJobDetail = async (req, res) => {
 
     const jobDetails = {
       jobTitle: job.job_title,
+      jobModel: job.job_model,
+      jobLevel: job.job_level,
+      jobType: job.job_type,
+      companyImage: job.companyId.company_image,
       companyName: job.companyId.company_name,
       location: job.location,
       industry: job.job_industry,
       degree: job.degree,
+      createdAt: job.createdAt,
       minExperience: job.min_experience,
-      datePosted: job.date_posted,
       skillsRequired: job.jobSkills.map(
         (jobSkill) => jobSkill.skill?.skill_name || "Unknown"
       ),
@@ -152,5 +142,45 @@ export const showJobDetail = async (req, res) => {
     res
       .status(500)
       .json({ message: "An error occurred while retrieving job details" });
+  }
+};
+
+export const getRecommendations = async (req, res) => {
+  try {
+    const { ids } = req.query;
+
+    if (!ids) {
+      return res.status(400).json({ error: "No job IDs provided" });
+    }
+
+    const jobIdsArray = Array.isArray(ids) ? ids : ids.split(",");
+
+    const jobs = await Jobs.findAll({
+      where: {
+        id: jobIdsArray,
+      },
+      include: [
+        {
+          model: Companies,
+          as: "companyId",
+          attributes: ["id", "company_name", "company_image"],
+        },
+      ],
+      attributes: {
+        exclude: [
+          "company_id",
+          "min_experience",
+          "degree",
+          "job_link",
+          "date_posted",
+          "updatedAt",
+        ],
+      },
+    });
+
+    return res.status(200).json(jobs);
+  } catch (error) {
+    console.error("Error fetching jobs:", error.message);
+    return res.status(500).json({ error: error.message });
   }
 };

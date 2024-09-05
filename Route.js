@@ -2,6 +2,7 @@ import express from "express";
 import UserController from "./controller/UserController.js";
 import checkToken from "./middleware/CheckToken.js";
 import {
+  getRecommendations,
   recommendJobs,
   showAllJobs,
   showJobDetail,
@@ -41,6 +42,7 @@ router.post("/save-session", saveSession);
 router.get("/get-session/:sessionId", getSession);
 router.get("/history", getAllSession);
 router.get("/jobs/:id", showJobDetail);
+router.get("/get-recommendations", getRecommendations);
 router.post("/transcribe", async (req, res) => {
   try {
     const { audioData } = req.body;
