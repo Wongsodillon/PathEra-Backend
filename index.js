@@ -41,19 +41,19 @@ const removeEmojis = (text) => {
 const sanitizeJobData = (data) => {
   try {
     const job = {
-      id: parseInt(data.job_id),
-      job_title: data.job_title || "Unknown Job Title",
-      job_type: data.job_type || "Unknown",
-      job_level: data.job_level || "Unknown",
-      job_model: data.work_model || "Unknown",
-      location: data.location || "Unknown",
-      job_industry: null,
-      min_experience: parseInt(data.min_experience) || 0,
-      degree: data.degree || "Not Specified",
-      job_description: removeEmojis(data.about?.slice(0, 5000)) || "No description available",  // Remove emojis
-      job_link: data.job_link || "",
-      date_posted: null,
-      company_id: parseInt(data.company_id),
+       id: data.job_id,
+        job_title: data.job_title,
+        job_type: data.job_type,
+        job_level: data.job_level,
+        job_model: data.work_model,
+        location: data.location,
+        job_industry: null,
+        min_experience: parseInt(data.min_experience) || 0,
+        degree: data.degree || "Not Specified",
+        job_description: data.about,
+        job_link: "",
+        date_posted: null,
+        company_id: parseInt(data.company_id),
     };
 
     return job;
