@@ -69,6 +69,7 @@ export const showWishlistedJobs = async (req, res) => {
   const { userId } = req.params;
 
   try {
+    // Fetch all jobs
     const allJobs = await Jobs.findAll({
       include: [
         {
