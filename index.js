@@ -24,191 +24,100 @@ import AnswerDetails from "./model/AnswerDetails.js";
 dotenv.config();
 const app = express();
 
-await db.authenticate();
-
-await db.authenticate();
-await Users.sync();
-await Skills.sync();
-await Companies.sync();
-await Jobs.sync();
-await JobMatches.sync();
-await JobSkills.sync();
-await MatchedSkills.sync();
-await UserSkills.sync();
-await UserTitles.sync();
-await SavedJobs.sync();
-await Questions.sync();
-await AnswerKey.sync();
-await PracticeSession.sync();
-await AnswerDetails.sync();
-
-
-const answer_key = [];
-
-fs.createReadStream("../dataset/answer_key.csv")
-  .pipe(csv())
-  .on("data", (data) => {
-    answer_key.push({
-      question_id: data.question_id,
-      answer: data.Answer,
-    });
-  })
-  .on("end", async () => {
-    try {
-      await db.sync();
-
-      const inserted = await AnswerKey.bulkCreate(answer_key, {
-        ignoreDuplicates: true,
-      });
-
-      console.log(
-        `answer_key data has been successfully seeded with ${inserted.length} entries.`
-      );
-    } catch (error) {
-      console.error("Error seeding job_skills data:", error);
-    }
-  });
-
-const readCSVFile = async (filePath) => {
-  return new Promise((resolve, reject) => {
-    const results = [];
-    fs.createReadStream(filePath)
-      .pipe(csv())
-      .on("data", (data) => {
-        if (data.id) {
-          data.id = parseInt(data.id);
-          data.company_image = data.company_image || null;
-          results.push(data);
-        } else {
-          console.log("Skipping row due to missing id:", data);
-        }
-      })
-      .on("end", () => {
-        resolve(results);
-      })
-      .on("error", (err) => reject(err));
-  });
-};
-
-const seedData = async () => {
-  try {
-    await db.authenticate();
-    console.log("Connection has been established successfully.");
-
-    const companies = await readCSVFile("../dataset/companies.csv");
-    await Companies.bulkCreate(companies, {
-      validate: true,
-      ignoreDuplicates: true,
-    });
-    console.log("Data has been inserted successfully.");
-  } catch (error) {
-    console.error("Error during data seeding:", error);
-  }
-};
-
-seedData();
-
-const results = [];
-
-fs.createReadStream("../dataset/job_for_migration.csv")
-  .pipe(csv())
-  .on("data", (data) => {
-    if (results.length < 250) {
-      results.push({
-        id: data.job_id,
-        job_title: data.job_title,
-        job_type: data.job_type,
-        job_level: data.job_level,
-        job_model: data.work_model,
-        location: data.location,
-        job_industry: null,
-        min_experience: parseInt(data.min_experience) || 0,
-        degree: data.degree || "Not Specified",
-        job_description: data.about,
-        job_link: "",
-        date_posted: null,
-        company_id: parseInt(data.company_id),
-      });
-    }
-  })
-  .on("end", async () => {
-    try {
-      await db.sync();
-
-      const inserted = await Jobs.bulkCreate(results);
-
-      console.log(
-        `Data has been successfully seeded with ${inserted.length} entries.`
-      );
-    } catch (error) {
-      console.error("Error seeding data:", error);
-    }
-  })
-  .on("error", (error) => {
-    console.error("Error processing the CSV file:", error);
-  });
-
-process.on("exit", () => {
-  db.close();
-});
-
-const job_skills = [];
-
-fs.createReadStream("../dataset/job_skills.csv")
-  .pipe(csv())
-  .on("data", (data) => {
-    job_skills.push({
-      job_id: parseInt(data.job_id),
-      skill_id: parseInt(data.skill_id),
-    });
-  })
-  .on("end", async () => {
-    try {
-      await db.sync();
-
-      const inserted = await JobSkills.bulkCreate(job_skills, {
-        ignoreDuplicates: true,
-      });
-
-      console.log(
-        `JobSkills data has been successfully seeded with ${inserted.length} entries.`
-      );
-    } catch (error) {
-      console.error("Error seeding job_skills data:", error);
-    }
-  });
-
-const questions = [];
-
-fs.createReadStream("../dataset/questions.csv")
-  .pipe(csv())
-  .on("data", (data) => {
-    questions.push({
-      question: data.Question,
-      job_title: data.JobTitle,
-      topic: data.Topic,
-    });
-  })
-  .on("end", async () => {
-    try {
-      await db.sync();
-
-      const inserted = await Questions.bulkCreate(questions, {
-        ignoreDuplicates: true,
-      });
-
-      console.log(
-        `Questions data has been successfully seeded with ${inserted.length} entries.`
-      );
-    } catch (error) {
-      console.error("Error seeding job_skills data:", error);
-    }
-  });
-
-
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 app.use(Route);
 
-app.listen(5005, () => console.log("Server running on port 5005"));
+const readCSVFile = (filePath) => {
+  return new Promise((resolve, reject) => {
+    const results = [];
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", (data) => results.push(data))
+      .on("end", () => resolve(results))
+      .on("error", (err) => reject(err));
+  });
+};
+
+const seedModel = async (Model, data, options = {}) => {
+  try {
+    await Model.bulkCreate(data, options);
+    console.log(`${Model.name} has been seeded successfully.`);
+  } catch (error) {
+    console.error(`Error seeding ${Model.name}:`, error);
+  }
+};
+
+const seedData = async () => {
+  try {
+    await db.authenticate();
+    console.log("Database connection established.");
+
+    await db.sync();
+
+    const companiesData = await readCSVFile("../dataset/companies.csv");
+    await seedModel(Companies, companiesData, { ignoreDuplicates: true });
+
+    const jobsData = await readCSVFile("../dataset/job_for_migration.csv");
+    const jobs = jobsData.map((data) => ({
+      id: parseInt(data.job_id),
+      job_title: data.job_title,
+      job_type: data.job_type,
+      job_level: data.job_level,
+      job_model: data.work_model,
+      location: data.location,
+      min_experience: parseInt(data.min_experience) || 0,
+      degree: data.degree || "Not Specified",
+      job_description: data.about,
+      company_id: parseInt(data.company_id),
+    }));
+    await seedModel(Jobs, jobs);
+
+    const jobSkillsData = await readCSVFile("../dataset/job_skills.csv");
+    const jobSkills = jobSkillsData.map((data) => ({
+      job_id: parseInt(data.job_id),
+      skill_id: parseInt(data.skill_id),
+    }));
+    await seedModel(JobSkills, jobSkills, { ignoreDuplicates: true });
+
+    const questionsData = await readCSVFile("../dataset/questions.csv");
+    const questions = questionsData.map((data) => ({
+      question: data.Question,
+      job_title: data.JobTitle,
+      topic: data.Topic,
+    }));
+    await seedModel(Questions, questions, { ignoreDuplicates: true });
+
+    const skillsData = await readCSVFile("../dataset/skills.csv");
+    const skills = skillsData.map((data) => ({
+      skill_name: data.skills,
+    }));
+    await seedModel(Skills, skills, { ignoreDuplicates: true });
+
+    const answerKeyData = await readCSVFile("../dataset/answer_key.csv");
+    const answerKey = answerKeyData.map((data) => ({
+      question_id: parseInt(data.question_id),
+      answer: data.Answer,
+    }));
+    await seedModel(AnswerKey, answerKey, { ignoreDuplicates: true });
+
+    console.log("All seeding processes completed successfully.");
+  } catch (error) {
+    console.error("Error during data seeding:", error);
+  }
+};
+
+const init = async () => {
+  await seedData();
+
+  app.listen(5005, () => {
+    console.log("Server running on port 5005");
+  });
+};
+
+init();
+
+process.on("exit", () => {
+  db.close();
+});
