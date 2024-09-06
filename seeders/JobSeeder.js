@@ -5,7 +5,7 @@ import Jobs from "../model/Jobs.js";
 
 const results = [];
 
-fs.createReadStream("../dataset/job_for_migration.csv")
+fs.createReadStream("./dataset/job_for_migration.csv")
   .pipe(csv())
   .on("data", (data) => {
     if (results.length < 250) {
