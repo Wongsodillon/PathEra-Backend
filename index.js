@@ -15,9 +15,22 @@ const app = express();
 await db.authenticate();
 await db.sync();
 
+// Set up CORS to allow multiple origins
+const allowedOrigins = ["http://localhost:5173", "http://pathera.vercel.app"];
+
+app.use(cors({
+  credentials: true,
+  origin: (origin, callback) => {
+    if (allowedOrigins.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  }
+}));
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
-app.use(cors({ credentials: true, origin: "http://pathera.vercel.app" }));
 app.use(Route);
 
 // Helper function to read CSV files
@@ -41,19 +54,19 @@ const removeEmojis = (text) => {
 const sanitizeJobData = (data) => {
   try {
     const job = {
-       id: data.job_id,
-        job_title: data.job_title,
-        job_type: data.job_type,
-        job_level: data.job_level,
-        job_model: data.work_model,
-        location: data.location,
-        job_industry: null,
-        min_experience: parseInt(data.min_experience) || 0,
-        degree: data.degree || "Not Specified",
-        job_description: data.about,
-        job_link: "",
-        date_posted: null,
-        company_id: parseInt(data.company_id),
+      id: data.job_id,
+      job_title: data.job_title,
+      job_type: data.job_type,
+      job_level: data.job_level,
+      job_model: data.work_model,
+      location: data.location,
+      job_industry: null,
+      min_experience: parseInt(data.min_experience) || 0,
+      degree: data.degree || "Not Specified",
+      job_description: removeEmojis(data.about) || "No description available", // Ensure job_description is sanitized
+      job_link: "",
+      date_posted: null,
+      company_id: parseInt(data.company_id),
     };
 
     return job;
