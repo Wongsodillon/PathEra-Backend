@@ -31,6 +31,7 @@ router.post("/register", UserController.register);
 router.post("/login", UserController.login);
 router.post("/logout", checkToken, UserController.logout);
 router.post("/recommend", recommendJobs);
+router.get("/featured", getFeaturedJobs);
 router.get("/jobs", showAllJobs);
 router.post("/save-job", saveJob);
 router.get("/skills", showSkills);
