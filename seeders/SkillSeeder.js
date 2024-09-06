@@ -5,7 +5,7 @@ import Skills from "../model/Skills.js";
 
 const skills = [];
 
-fs.createReadStream("../dataset/skills.csv")
+fs.createReadStream("./dataset/skills.csv")
   .pipe(csv())
   .on("data", (data) => {
     skills.push({
