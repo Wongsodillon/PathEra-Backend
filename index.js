@@ -178,6 +178,33 @@ fs.createReadStream("../dataset/job_skills.csv")
     }
   });
 
+const questions = [];
+
+fs.createReadStream("../dataset/questions.csv")
+  .pipe(csv())
+  .on("data", (data) => {
+    questions.push({
+      question: data.Question,
+      job_title: data.JobTitle,
+      topic: data.Topic,
+    });
+  })
+  .on("end", async () => {
+    try {
+      await db.sync();
+
+      const inserted = await Questions.bulkCreate(questions, {
+        ignoreDuplicates: true,
+      });
+
+      console.log(
+        `Questions data has been successfully seeded with ${inserted.length} entries.`
+      );
+    } catch (error) {
+      console.error("Error seeding job_skills data:", error);
+    }
+  });
+
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
