@@ -24,6 +24,9 @@ import AnswerDetails from "./model/AnswerDetails.js";
 dotenv.config();
 const app = express();
 
+await db.authenticate();
+await db.sync();
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
@@ -51,37 +54,42 @@ const seedModel = async (Model, data, options = {}) => {
 
 const seedData = async () => {
   try {
-    await db.authenticate();
-    console.log("Database connection established.");
-
-    await db.sync();
-
-    const companiesData = await readCSVFile("../dataset/companies.csv");
+    const companiesData = await readCSVFile("./dataset/companies.csv");
     await seedModel(Companies, companiesData, { ignoreDuplicates: true });
 
-    const jobsData = await readCSVFile("../dataset/job_for_migration.csv");
-    const jobs = jobsData.map((data) => ({
-      id: parseInt(data.job_id),
-      job_title: data.job_title,
-      job_type: data.job_type,
-      job_level: data.job_level,
-      job_model: data.work_model,
-      location: data.location,
-      min_experience: parseInt(data.min_experience) || 0,
-      degree: data.degree || "Not Specified",
-      job_description: data.about,
-      company_id: parseInt(data.company_id),
-    }));
+    const jobsData = await readCSVFile("./dataset/job_for_migration.csv");
+    const jobs = jobsData
+      .map((data, index) => {
+        if (index < 250) {
+          return {
+            id: parseInt(data.job_id),
+            job_title: data.job_title,
+            job_type: data.job_type,
+            job_level: data.job_level,
+            job_model: data.work_model,
+            location: data.location,
+            job_industry: null,
+            min_experience: parseInt(data.min_experience) || 0,
+            degree: data.degree || "Not Specified",
+            job_description: data.about,
+            job_link: "",
+            date_posted: null,
+            company_id: parseInt(data.company_id),
+          };
+        }
+      })
+      .filter(Boolean); 
+
     await seedModel(Jobs, jobs);
 
-    const jobSkillsData = await readCSVFile("../dataset/job_skills.csv");
+    const jobSkillsData = await readCSVFile("./dataset/job_skills.csv");
     const jobSkills = jobSkillsData.map((data) => ({
       job_id: parseInt(data.job_id),
       skill_id: parseInt(data.skill_id),
     }));
     await seedModel(JobSkills, jobSkills, { ignoreDuplicates: true });
 
-    const questionsData = await readCSVFile("../dataset/questions.csv");
+    const questionsData = await readCSVFile("./dataset/questions.csv");
     const questions = questionsData.map((data) => ({
       question: data.Question,
       job_title: data.JobTitle,
@@ -89,13 +97,13 @@ const seedData = async () => {
     }));
     await seedModel(Questions, questions, { ignoreDuplicates: true });
 
-    const skillsData = await readCSVFile("../dataset/skills.csv");
+    const skillsData = await readCSVFile("./dataset/skills.csv");
     const skills = skillsData.map((data) => ({
       skill_name: data.skills,
     }));
     await seedModel(Skills, skills, { ignoreDuplicates: true });
 
-    const answerKeyData = await readCSVFile("../dataset/answer_key.csv");
+    const answerKeyData = await readCSVFile("./dataset/answer_key.csv");
     const answerKey = answerKeyData.map((data) => ({
       question_id: parseInt(data.question_id),
       answer: data.Answer,
