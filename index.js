@@ -24,14 +24,14 @@ const app = express();
 
 await db.authenticate();
 
+await db.authenticate();
+await Users.sync();
 await Skills.sync();
 await Companies.sync();
-await Users.sync();
 await Jobs.sync();
 await JobMatches.sync();
 await JobSkills.sync();
 await MatchedSkills.sync();
-await UsersExperience.sync();
 await UserSkills.sync();
 await UserTitles.sync();
 await SavedJobs.sync();
