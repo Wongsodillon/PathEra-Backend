@@ -5,7 +5,7 @@ import Questions from "../model/Questions.js";
 
 const questions = [];
 
-fs.createReadStream("../dataset/questions.csv")
+fs.createReadStream("./dataset/questions.csv")
   .pipe(csv())
   .on("data", (data) => {
     questions.push({
