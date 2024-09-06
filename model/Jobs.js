@@ -42,9 +42,10 @@ const Jobs = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    job_description: {
-      type: DataTypes.TEXT,
-    },
+job_description: {
+    type: DataTypes.TEXT('long'), 
+    allowNull: true,
+  },
     job_link: {
       type: DataTypes.STRING,
     },
