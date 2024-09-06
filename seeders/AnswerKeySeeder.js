@@ -5,7 +5,7 @@ import AnswerKey from "../model/AnswerKey.js";
 
 const answer_key = [];
 
-fs.createReadStream("../dataset/answer_key.csv")
+fs.createReadStream("./dataset/answer_key.csv")
   .pipe(csv())
   .on("data", (data) => {
     answer_key.push({
