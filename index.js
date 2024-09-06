@@ -44,7 +44,11 @@ const readCSVFile = (filePath) => {
   });
 };
 
-// Helper function to sanitize and validate job data
+const removeEmojis = (text) => {
+  return text.replace(/[\u{1F600}-\u{1F64F}]/gu, ""); // Adjust regex as needed
+};
+
+// Modify job seeding logic
 const sanitizeJobData = (data) => {
   try {
     const job = {
@@ -57,7 +61,7 @@ const sanitizeJobData = (data) => {
       job_industry: null,
       min_experience: parseInt(data.min_experience) || 0,
       degree: data.degree || "Not Specified",
-      job_description: data.about?.slice(0, 5000) || "No description available", // Limit to 5000 chars
+      job_description: removeEmojis(data.about?.slice(0, 5000)) || "No description available",  // Remove emojis
       job_link: data.job_link || "",
       date_posted: null,
       company_id: parseInt(data.company_id),
