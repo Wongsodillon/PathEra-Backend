@@ -24,18 +24,18 @@ import AnswerDetails from "./model/AnswerDetails.js";
 dotenv.config();
 const app = express();
 
-await db.authenticate();
-await db.sync();
+// CORS configuration
+const corsOptions = {
+  origin: "https://pathera.vercel.app", // Replace with your frontend origin
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
-app.use(cors({
-  origin: "*", 
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], 
-  allowedHeaders: ["Content-Type", "Authorization"], 
-  credentials: true 
-}));
-
 app.use(Route);
 
 const readCSVFile = (filePath) => {
