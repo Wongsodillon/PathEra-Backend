@@ -6,7 +6,7 @@
   "scripts": {
     "seed": "node seeders/AnswerKeySeeder.js && node seeders/CompanySeeder.js && node seeders/JobSeeder.js && node seeders/JobSkillsSeeder.js && node seeders/QuestionSeeder.js && node seeders/SkillSeeder.js",
     "start": "node index.js",
-    "dev": "nodemon index.js && npm run seed"
+    "dev": "npm run seed && nodemon index.js"
   },
   "keywords": [],
   "author": "",
