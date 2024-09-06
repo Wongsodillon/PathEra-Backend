@@ -69,36 +69,35 @@ export const showWishlistedJobs = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const savedJobs = await SavedJobs.findAll({
-      where: { user_id: userId },
+    const allJobs = await Jobs.findAll({
       include: [
         {
-          model: Jobs,
-          as: "job",
-          attributes: ["id", "job_title", "job_description", "date_posted"],
-          include: [
-            {
-              model: Companies,
-              as: "companyId",
-              attributes: ["id", "company_name"],
-            },
-          ],
+          model: Companies,
+          as: "companyId",
+          attributes: ["id", "company_name"],
         },
       ],
     });
 
-    if (savedJobs.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No saved jobs found for this user." });
-    }
+    const savedJobs = await SavedJobs.findAll({
+      where: { user_id: userId },
+      attributes: ["job_id"],
+    });
 
-    return res.status(200).json(savedJobs);
+    const savedJobIds = new Set(savedJobs.map((job) => job.job_id));
+
+    const jobsWithSavedStatus = allJobs.map((job) => ({
+      ...job.toJSON(),
+      isSaved: savedJobIds.has(job.id),
+    }));
+
+    return res.status(200).json(jobsWithSavedStatus);
   } catch (error) {
-    console.error("Error fetching saved jobs:", error);
+    console.error("Error fetching jobs:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 export const removeSavedJob = async (req, res) => {
   const { job_id, user_id } = req.body;
