@@ -3,6 +3,38 @@ import JobSkills from "../model/JobSkills.js";
 import Jobs from "../model/Jobs.js";
 import Companies from "../model/Companies.js";
 import Skills from "../model/Skills.js";
+import { Sequelize } from "sequelize";
+
+export const getFeaturedJobs = async (req, res) => {
+  try {
+    const featuredJobs = await Jobs.findAll({
+      order: Sequelize.literal("RAND()"),
+      limit: 9,
+      include: [
+        {
+          model: Companies,
+          as: "companyId",
+          attributes: ["id", "company_name", "company_image"],
+        },
+      ],
+      attributes: {
+        exclude: [
+          "company_id",
+          "min_experience",
+          "degree",
+          "job_link",
+          "date_posted",
+          "updatedAt",
+        ],
+      },
+    });
+
+    res.status(200).json(featuredJobs);
+  } catch (error) {
+    console.error("Error fetching featured jobs:", error.message);
+    res.status(500).json({ error: "Error fetching featured jobs" });
+  }
+};
 
 export const recommendJobs = async (req, res) => {
   try {
