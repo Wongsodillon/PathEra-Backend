@@ -29,7 +29,7 @@ const seedData = async () => {
     await db.authenticate();
     console.log("Connection has been established successfully.");
 
-    const companies = await readCSVFile("../dataset/companies.csv");
+    const companies = await readCSVFile("./dataset/companies.csv");
     await Companies.bulkCreate(companies, {
       validate: true,
       ignoreDuplicates: true,
