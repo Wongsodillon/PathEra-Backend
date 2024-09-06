@@ -22,20 +22,23 @@ import AnswerDetails from "./model/AnswerDetails.js";
 dotenv.config();
 const app = express();
 
-// await db.authenticate();
-// await Users.sync();
-// await JobMatches.sync();
-/// await JobSkills.sync();
-// await MatchedSkills.sync();
-// await Skills.sync();
-// await UsersExperience.sync();
-// await UserSkills.sync();
-// await UserTitles.sync();
-// await SavedJobs.sync();
-// await Questions.sync();
-// await AnswerKey.sync();
-// await PracticeSession.sync();
-// await AnswerDetails.sync();
+await db.authenticate();
+
+await Skills.sync();
+await Companies.sync();
+await Users.sync();
+await Jobs.sync();
+await JobMatches.sync();
+await JobSkills.sync();
+await MatchedSkills.sync();
+await UsersExperience.sync();
+await UserSkills.sync();
+await UserTitles.sync();
+await SavedJobs.sync();
+await Questions.sync();
+await AnswerKey.sync();
+await PracticeSession.sync();
+await AnswerDetails.sync();
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
