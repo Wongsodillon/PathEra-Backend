@@ -2,6 +2,7 @@ import express from "express";
 import UserController from "./controller/UserController.js";
 import checkToken from "./middleware/CheckToken.js";
 import {
+  getFeaturedJobs,
   getRecommendations,
   recommendJobs,
   showAllJobs,
