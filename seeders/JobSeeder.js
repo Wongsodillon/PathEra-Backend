@@ -8,7 +8,7 @@ const results = [];
 fs.createReadStream("./dataset/job_for_migration.csv")
   .pipe(csv())
   .on("data", (data) => {
-    if (results.length < 250) {
+    if (results.length < 10) {
       results.push({
         id: data.job_id,
         job_title: data.job_title,
