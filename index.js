@@ -32,6 +32,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 app.use(Route);
 
+// Helper function to read CSV files
 const readCSVFile = (filePath) => {
   return new Promise((resolve, reject) => {
     const results = [];
@@ -43,6 +44,33 @@ const readCSVFile = (filePath) => {
   });
 };
 
+// Helper function to sanitize and validate job data
+const sanitizeJobData = (data) => {
+  try {
+    const job = {
+      id: parseInt(data.job_id),
+      job_title: data.job_title || "Unknown Job Title",
+      job_type: data.job_type || "Unknown",
+      job_level: data.job_level || "Unknown",
+      job_model: data.work_model || "Unknown",
+      location: data.location || "Unknown",
+      job_industry: null,
+      min_experience: parseInt(data.min_experience) || 0,
+      degree: data.degree || "Not Specified",
+      job_description: data.about?.slice(0, 5000) || "No description available", // Limit to 5000 chars
+      job_link: data.job_link || "",
+      date_posted: null,
+      company_id: parseInt(data.company_id),
+    };
+
+    return job;
+  } catch (err) {
+    console.error("Error sanitizing job data:", err);
+    return null; // Skip invalid records
+  }
+};
+
+// Seeder function for all models
 const seedModel = async (Model, data, options = {}) => {
   try {
     await Model.bulkCreate(data, options);
@@ -52,36 +80,26 @@ const seedModel = async (Model, data, options = {}) => {
   }
 };
 
+// Main function to seed all data
 const seedData = async () => {
   try {
+    // Seed Companies
     const companiesData = await readCSVFile("./dataset/companies.csv");
     await seedModel(Companies, companiesData, { ignoreDuplicates: true });
 
+    // Seed Jobs
     const jobsData = await readCSVFile("./dataset/job_for_migration.csv");
     const jobs = jobsData
       .map((data, index) => {
-        if (index < 50) {
-          return {
-            id: parseInt(data.job_id),
-            job_title: data.job_title,
-            job_type: data.job_type,
-            job_level: data.job_level,
-            job_model: data.work_model,
-            location: data.location,
-            job_industry: null,
-            min_experience: parseInt(data.min_experience) || 0,
-            degree: data.degree || "Not Specified",
-            job_description: data.about,
-            job_link: "",
-            date_posted: null,
-            company_id: parseInt(data.company_id),
-          };
+        if (index < 250) {
+          const sanitizedJob = sanitizeJobData(data);
+          return sanitizedJob;
         }
       })
-      .filter(Boolean); // Filter out any undefined values from jobsData
-
+      .filter(Boolean); // Filter out invalid records
     await seedModel(Jobs, jobs);
 
+    // Seed JobSkills
     const jobSkillsData = await readCSVFile("./dataset/job_skills.csv");
     const jobSkills = jobSkillsData.map((data) => ({
       job_id: parseInt(data.job_id),
@@ -89,6 +107,7 @@ const seedData = async () => {
     }));
     await seedModel(JobSkills, jobSkills, { ignoreDuplicates: true });
 
+    // Seed Questions
     const questionsData = await readCSVFile("./dataset/questions.csv");
     const questions = questionsData.map((data) => ({
       question: data.Question,
@@ -97,12 +116,14 @@ const seedData = async () => {
     }));
     await seedModel(Questions, questions, { ignoreDuplicates: true });
 
+    // Seed Skills
     const skillsData = await readCSVFile("./dataset/skills.csv");
     const skills = skillsData.map((data) => ({
       skill_name: data.skills,
     }));
     await seedModel(Skills, skills, { ignoreDuplicates: true });
 
+    // Seed AnswerKey
     const answerKeyData = await readCSVFile("./dataset/answer_key.csv");
     const answerKey = answerKeyData.map((data) => ({
       question_id: parseInt(data.question_id),
@@ -116,6 +137,7 @@ const seedData = async () => {
   }
 };
 
+// Initialize and seed data, then start the server
 const init = async () => {
   await seedData();
 
@@ -126,6 +148,7 @@ const init = async () => {
 
 init();
 
+// Ensure the database connection is closed on exit
 process.on("exit", () => {
   db.close();
 });
