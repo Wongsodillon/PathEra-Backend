@@ -6,20 +6,8 @@ import fs from "fs";
 import csv from "csv-parser";
 import Route from "./Route.js";
 
-import Users from "./model/Users.js";
 import Companies from "./model/Companies.js";
-import JobMatches from "./model/JobMatches.js";
 import Jobs from "./model/Jobs.js";
-import JobSkills from "./model/JobSkills.js";
-import MatchedSkills from "./model/MatchedSkills.js";
-import Skills from "./model/Skills.js";
-import UserSkills from "./model/UserSkills.js";
-import UserTitles from "./model/UserTitles.js";
-import SavedJobs from "./model/SavedJobs.js";
-import Questions from "./model/Questions.js";
-import AnswerKey from "./model/AnswerKey.js";
-import PracticeSession from "./model/PracticeSession.js";
-import AnswerDetails from "./model/AnswerDetails.js";
 
 dotenv.config();
 const app = express();
@@ -44,6 +32,7 @@ const readCSVFile = (filePath) => {
   });
 };
 
+// Helper function to remove emojis from text
 const removeEmojis = (text) => {
   return text.replace(/[\u{1F600}-\u{1F64F}]/gu, ""); // Adjust regex as needed
 };
@@ -74,7 +63,7 @@ const sanitizeJobData = (data) => {
   }
 };
 
-// Seeder function for all models
+// Seeder function for Companies and Jobs
 const seedModel = async (Model, data, options = {}) => {
   try {
     await Model.bulkCreate(data, options);
@@ -84,7 +73,7 @@ const seedModel = async (Model, data, options = {}) => {
   }
 };
 
-// Main function to seed all data
+// Main function to seed Companies and Jobs
 const seedData = async () => {
   try {
     // Seed Companies
@@ -103,39 +92,7 @@ const seedData = async () => {
       .filter(Boolean); // Filter out invalid records
     await seedModel(Jobs, jobs);
 
-    // Seed JobSkills
-    const jobSkillsData = await readCSVFile("./dataset/job_skills.csv");
-    const jobSkills = jobSkillsData.map((data) => ({
-      job_id: parseInt(data.job_id),
-      skill_id: parseInt(data.skill_id),
-    }));
-    await seedModel(JobSkills, jobSkills, { ignoreDuplicates: true });
-
-    // Seed Questions
-    const questionsData = await readCSVFile("./dataset/questions.csv");
-    const questions = questionsData.map((data) => ({
-      question: data.Question,
-      job_title: data.JobTitle,
-      topic: data.Topic,
-    }));
-    await seedModel(Questions, questions, { ignoreDuplicates: true });
-
-    // Seed Skills
-    const skillsData = await readCSVFile("./dataset/skills.csv");
-    const skills = skillsData.map((data) => ({
-      skill_name: data.skills,
-    }));
-    await seedModel(Skills, skills, { ignoreDuplicates: true });
-
-    // Seed AnswerKey
-    const answerKeyData = await readCSVFile("./dataset/answer_key.csv");
-    const answerKey = answerKeyData.map((data) => ({
-      question_id: parseInt(data.question_id),
-      answer: data.Answer,
-    }));
-    await seedModel(AnswerKey, answerKey, { ignoreDuplicates: true });
-
-    console.log("All seeding processes completed successfully.");
+    console.log("Companies and Jobs have been seeded successfully.");
   } catch (error) {
     console.error("Error during data seeding:", error);
   }
