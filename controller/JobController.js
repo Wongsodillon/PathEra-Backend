@@ -3,6 +3,7 @@ import JobSkills from "../model/JobSkills.js";
 import Jobs from "../model/Jobs.js";
 import Companies from "../model/Companies.js";
 import Skills from "../model/Skills.js";
+import jwt from "jsonwebtoken";
 import { Sequelize } from "sequelize";
 
 export const getFeaturedJobs = async (req, res) => {
@@ -123,9 +124,30 @@ export const showJobDetail = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: "Authorization header missing" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    let authenticatedUserId = null;
+    let isTokenExpired = false;
+
+    try {
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      authenticatedUserId = decodedToken.id;
+    } catch (error) {
+      isTokenExpired = true;
+    }
+
+    const savedJob = !isTokenExpired
+      ? await SavedJobs.findOne({
+          where: { job_id: id, user_id: authenticatedUserId },
+        })
+      : null;
+
     const job = await Jobs.findOne({
       where: { id },
-
       include: [
         {
           model: Companies,
@@ -151,6 +173,7 @@ export const showJobDetail = async (req, res) => {
     }
 
     const jobDetails = {
+      id: job.id,
       jobTitle: job.job_title,
       jobModel: job.job_model,
       jobLevel: job.job_level,
@@ -162,6 +185,7 @@ export const showJobDetail = async (req, res) => {
       degree: job.degree,
       createdAt: job.createdAt,
       minExperience: job.min_experience,
+      isSaved: isTokenExpired ? false : !!savedJob,
       skillsRequired: job.jobSkills.map(
         (jobSkill) => jobSkill.skill?.skill_name || "Unknown"
       ),
